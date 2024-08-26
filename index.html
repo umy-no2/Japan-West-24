@@ -44,7 +44,7 @@
             height: 100%;
         }
         table {
-            width: 95%;
+            width: 103%;
             height: 98%;
             border-collapse: collapse;
             table-layout: fixed;
@@ -117,11 +117,22 @@
         .score-cell {
             font-weight: bold;
         }
+        .rankings-table {
+            width: 100%;
+            height: 100%;
+            font-size: 2em;
+        }
+        .rankings-table th, .rankings-table td {
+            padding: 10px;
+        }
+        .single table {
+            font-size: 1.5em;
+        }
     </style>
 </head>
 <body>
     <div id="container">
-        <h1>Japan West 24</h1>
+        <h1 id="header"></h1>
         <div id="content"></div>
         <div id="footer">
             <span class="footer-text footer-red">赤：メイン配信</span>
@@ -138,16 +149,14 @@
         function generateLeagueTable(data, leagueName, rankings, isSingle = false) {
             let tableHtml = `<div class="league-container${isSingle ? ' single' : ''}"><table>`;
             
-            // ヘッダー行を追加
             tableHtml += '<tr>';
-            tableHtml += `<th>${leagueName}</th>`; // A1セルにリーグ記号を配置
+            tableHtml += `<th>${leagueName}</th>`;
             for (let j = 1; j < data[0].length; j++) {
                 tableHtml += `<th id="${leagueName}-0-${j}">${data[0][j]}</th>`;
             }
-            tableHtml += '<th>順位</th>'; // 順位列を追加
+            tableHtml += '<th>順位</th>';
             tableHtml += '</tr>';
 
-            // データ行を追加
             for (let i = 1; i < data.length; i++) {
                 tableHtml += '<tr>';
                 for (let j = 0; j < data[i].length; j++) {
@@ -159,12 +168,30 @@
                         tableHtml += `<td id="${leagueName}-${i}-${j}" class="${cellClass}">${cellContent}</td>`;
                     }
                 }
-                // 順位列を追加
                 const rank = rankings[i - 1] ? rankings[i - 1] : '';
                 tableHtml += `<td>${rank}</td>`;
                 tableHtml += '</tr>';
             }
             
+            tableHtml += '</table></div>';
+            return tableHtml;
+        }
+
+        function generateRankingsTable(allLeagueData) {
+            let tableHtml = '<div class="league-container single"><table class="rankings-table">';
+            tableHtml += '<tr><th>プレイヤー</th><th>リーグ</th><th>順位</th></tr>';
+
+            const leagueOrder = ['A', 'B', 'C', 'D'];
+            leagueOrder.forEach((league, leagueIndex) => {
+                allLeagueData[league].slice(1).forEach((row, playerIndex) => {
+                    tableHtml += `<tr>
+                        <td>${row[0]}</td>
+                        <td>${league}</td>
+                        <td>${allLeagueData.rankings[playerIndex][leagueIndex]}</td>
+                    </tr>`;
+                });
+            });
+
             tableHtml += '</table></div>';
             return tableHtml;
         }
@@ -181,6 +208,13 @@
             }
         }
 
+        function toggleHeaderFooter() {
+            const header = document.getElementById('header');
+            const footer = document.getElementById('footer');
+            header.style.display = header.style.display === 'none' ? 'block' : 'none';
+            footer.style.display = footer.style.display === 'none' ? 'block' : 'none';
+        }
+
         function updateTournamentData() {
             axios.get(GAS_ENDPOINT)
                 .then(function(response) {
@@ -189,12 +223,15 @@
                     const leagueOrder = ['A', 'B', 'C', 'D'];
                     const hash = window.location.hash.slice(1);
                     
-                    if (hash && leagueOrder.includes(hash)) {
-                        // 単体表示
+                    if (hash === 'rankings') {
+                        contentHtml = generateRankingsTable(allLeagueData);
+                    } else if (hash && leagueOrder.includes(hash)) {
                         const rankings = allLeagueData.rankings ? allLeagueData.rankings.map(row => row[leagueOrder.indexOf(hash)]) : [];
                         contentHtml = generateLeagueTable(allLeagueData[hash], "リーグ" + hash, rankings, true);
+                    } else if (hash === 'toggle') {
+                        toggleHeaderFooter();
+                        return;
                     } else {
-                        // 全体表示
                         leagueOrder.forEach((leagueName, index) => {
                             if (allLeagueData[leagueName]) {
                                 const rankings = allLeagueData.rankings ? allLeagueData.rankings.map(row => row[index]) : [];
