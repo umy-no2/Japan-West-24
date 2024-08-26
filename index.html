@@ -28,6 +28,8 @@
             display: flex;
             flex-wrap: wrap;
             flex-grow: 1;
+            width: 1920px;
+            height: 830px;
         }
         .league-container {
             width: 50%;
@@ -61,10 +63,11 @@
             background-color: black;
             color: white;
             border-bottom: 2px solid white;
-            font-size: 2.2em;
+            font-size: 1.5em;
         }
         td {
             border-bottom: 1px solid white;
+            font-size: 1.3em;
         }
         td:first-child, th:first-child {
             width: 25%;
@@ -76,9 +79,6 @@
         }
         tr:first-child {
             height: 60px;
-        }
-        th {
-            font-size: 2.2em;
         }
         .highlighted-red {
             background-color: rgba(255, 0, 0, 0.3);
@@ -101,13 +101,13 @@
         .rankings-table {
             width: 95%;
             height: 50%;
-            font-size: 2.2em;
+            font-size: 1.5em;
         }
         .rankings-table th, .rankings-table td {
             padding: 5px;
         }
         .single table {
-            font-size: 2.2em;
+            font-size: 1.5em;
         }
     </style>
 </head>
@@ -155,7 +155,7 @@
 
         function generateRankingsTable(allLeagueData) {
             const leagueOrder = ['A', 'B', 'C', 'D'];
-            let tableHtml = '<div id="content" style="display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; height: 960px; width: 1920px;">';
+            let tableHtml = '<div style="display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; height: 100%; width: 100%;">';
             
             leagueOrder.forEach((league, index) => {
                 tableHtml += `<div class="league-container" style="width: 100%; height: 100%;">`;
