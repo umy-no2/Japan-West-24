@@ -81,14 +81,8 @@
         tr:first-child th {
             font-size: 2em;
         }
-        .highlighted-red {
-            background-color: rgba(255, 0, 0, 0.3);
-        }
-        .highlighted-blue {
-            background-color: rgba(0, 0, 255, 0.3);
-        }
-        .highlighted-green {
-            background-color: rgba(0, 255, 0, 0.3);
+        .highlighted {
+            background-color: rgba(255, 255, 255, 0.3);
         }
         #footer {
             text-align: center;
@@ -98,15 +92,6 @@
         }
         .footer-text {
             margin: 0 10px;
-        }
-        .footer-red {
-            color: red;
-        }
-        .footer-blue {
-            color: blue;
-        }
-        .footer-green {
-            color: green;
         }
         .footer-note {
             display: block;
@@ -137,9 +122,9 @@
         <h1 id="header">Japan West 24</h1>
         <div id="content"></div>
         <div id="footer">
-            <span class="footer-text footer-red">赤：メイン配信</span>
-            <span class="footer-text footer-blue">青：サブ配信</span>
-            <span class="footer-text footer-green">緑：サブ配信2</span>
+            <span class="footer-text">赤：メイン配信</span>
+            <span class="footer-text">青：サブ配信</span>
+            <span class="footer-text">緑：サブ配信2</span>
             <span class="footer-note">※勝数→失ゲーム数→直接対決→1先の順に順位を判断いたします。</span>
         </div>
     </div>
@@ -209,11 +194,11 @@
         }
 
         function highlightMatches(streamData) {
-            for (const [color, players] of Object.entries(streamData)) {
+            for (const players of Object.values(streamData)) {
                 players.forEach(playerName => {
                     document.querySelectorAll('td').forEach(cell => {
                         if (cell.textContent.trim() === playerName) {
-                            cell.classList.add(`highlighted-${color}`);
+                            cell.classList.add('highlighted');
                         }
                     });
                 });
@@ -223,8 +208,10 @@
         function toggleHeaderFooter() {
             const header = document.getElementById('header');
             const footer = document.getElementById('footer');
-            header.style.visibility = header.style.visibility === 'hidden' ? 'visible' : 'hidden';
-            footer.style.visibility = footer.style.visibility === 'hidden' ? 'visible' : 'hidden';
+            const isHidden = header.style.visibility === 'hidden';
+            header.style.visibility = isHidden ? 'visible' : 'hidden';
+            footer.style.visibility = isHidden ? 'visible' : 'hidden';
+            localStorage.setItem('headerFooterHidden', !isHidden);
         }
 
         function updateTournamentData() {
@@ -260,6 +247,13 @@
                     if (shouldToggle) {
                         toggleHeaderFooter();
                     }
+
+                    // ヘッダー/フッターの表示状態を復元
+                    const headerFooterHidden = localStorage.getItem('headerFooterHidden') === 'true';
+                    const header = document.getElementById('header');
+                    const footer = document.getElementById('footer');
+                    header.style.visibility = headerFooterHidden ? 'hidden' : 'visible';
+                    footer.style.visibility = headerFooterHidden ? 'hidden' : 'visible';
                 })
                 .catch(function(error) {
                     console.error('データの取得中にエラーが発生しました:', error);
