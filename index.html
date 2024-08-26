@@ -178,7 +178,7 @@
         }
 
         function updateTournamentData() {
-            axios.get(API_ENDPOINT)
+            axios.get(GAS_ENDPOINT)
                 .then(function(response) {
                     const allLeagueData = response.data;
                     let contentHtml = '';
