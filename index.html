@@ -20,10 +20,8 @@
             display: flex;
             flex-direction: column;
         }
-        h1 {
+        #header {
             text-align: center;
-            margin: 20px 0;
-            font-size: 3em;
             height: 60px;
         }
         #content {
@@ -79,24 +77,19 @@
             height: 60px;
         }
         tr:first-child th {
-            font-size: 2em;
+            font-size: 1.8em;
         }
-        .highlighted {
-            background-color: rgba(255, 255, 255, 0.3);
+        .highlighted-red {
+            background-color: rgba(255, 0, 0, 0.3);
+        }
+        .highlighted-blue {
+            background-color: rgba(0, 0, 255, 0.3);
+        }
+        .highlighted-green {
+            background-color: rgba(0, 255, 0, 0.3);
         }
         #footer {
-            text-align: center;
-            padding: 10px;
-            font-size: 1.5em;
             height: 60px;
-        }
-        .footer-text {
-            margin: 0 10px;
-        }
-        .footer-note {
-            display: block;
-            margin-top: 10px;
-            font-size: 0.9em;
         }
         .highlighted-cell {
             font-weight: bold;
@@ -107,26 +100,21 @@
         .rankings-table {
             width: 100%;
             height: 100%;
-            font-size: 2.5em;
+            font-size: 2.2em;
         }
         .rankings-table th, .rankings-table td {
-            padding: 10px;
+            padding: 5px;
         }
         .single table {
-            font-size: 2.5em;
+            font-size: 2.2em;
         }
     </style>
 </head>
 <body>
     <div id="container">
-        <h1 id="header">Japan West 24</h1>
+        <div id="header"></div>
         <div id="content"></div>
-        <div id="footer">
-            <span class="footer-text">赤：メイン配信</span>
-            <span class="footer-text">青：サブ配信</span>
-            <span class="footer-text">緑：サブ配信2</span>
-            <span class="footer-note">※勝数→失ゲーム数→直接対決→1先の順に順位を判断いたします。</span>
-        </div>
+        <div id="footer"></div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
@@ -166,22 +154,18 @@
 
         function generateRankingsTable(allLeagueData) {
             const leagueOrder = ['A', 'B', 'C', 'D'];
-            let tableHtml = '<div id="content" style="display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; height: 100%;">';
+            let tableHtml = '<div id="content" style="display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; height: 960px; width: 1920px;">';
             
             leagueOrder.forEach((league, index) => {
                 tableHtml += `<div class="league-container" style="width: 100%; height: 100%;">`;
                 tableHtml += `<table class="rankings-table">`;
-                if (index === 0) {
-                    tableHtml += `<tr><th colspan="3">リーグ順位表</th></tr>`;
-                }
-                tableHtml += `<tr><th colspan="3">リーグ${league}</th></tr>`;
-                tableHtml += '<tr><th>プレイヤー</th><th>リーグ</th><th>順位</th></tr>';
+                tableHtml += `<tr><th colspan="2">リーグ${league}</th></tr>`;
+                tableHtml += '<tr><th>プレイヤー</th><th>順位</th></tr>';
 
                 allLeagueData[league].slice(1).forEach((row, playerIndex) => {
                     const rank = allLeagueData.rankings[playerIndex][index];
                     tableHtml += `<tr>
                         <td>${row[0]}</td>
-                        <td>${league}</td>
                         <td>${rank !== undefined ? rank : '-'}</td>
                     </tr>`;
                 });
@@ -194,24 +178,15 @@
         }
 
         function highlightMatches(streamData) {
-            for (const players of Object.values(streamData)) {
+            for (const [color, players] of Object.entries(streamData)) {
                 players.forEach(playerName => {
                     document.querySelectorAll('td').forEach(cell => {
                         if (cell.textContent.trim() === playerName) {
-                            cell.classList.add('highlighted');
+                            cell.classList.add(`highlighted-${color}`);
                         }
                     });
                 });
             }
-        }
-
-        function toggleHeaderFooter() {
-            const header = document.getElementById('header');
-            const footer = document.getElementById('footer');
-            const isHidden = header.style.visibility === 'hidden';
-            header.style.visibility = isHidden ? 'visible' : 'hidden';
-            footer.style.visibility = isHidden ? 'visible' : 'hidden';
-            localStorage.setItem('headerFooterHidden', !isHidden);
         }
 
         function updateTournamentData() {
@@ -220,15 +195,13 @@
                     const allLeagueData = response.data;
                     let contentHtml = '';
                     const leagueOrder = ['A', 'B', 'C', 'D'];
-                    const hash = window.location.hash.slice(1).split('_');
-                    const view = hash[0];
-                    const shouldToggle = hash.includes('toggle');
+                    const hash = window.location.hash.slice(1);
                     
-                    if (view === 'rankings') {
+                    if (hash === 'rankings') {
                         contentHtml = generateRankingsTable(allLeagueData);
-                    } else if (view && leagueOrder.includes(view)) {
-                        const rankings = allLeagueData.rankings ? allLeagueData.rankings.map(row => row[leagueOrder.indexOf(view)]) : [];
-                        contentHtml = generateLeagueTable(allLeagueData[view], "リーグ" + view, rankings, true);
+                    } else if (hash && leagueOrder.includes(hash)) {
+                        const rankings = allLeagueData.rankings ? allLeagueData.rankings.map(row => row[leagueOrder.indexOf(hash)]) : [];
+                        contentHtml = generateLeagueTable(allLeagueData[hash], "リーグ" + hash, rankings, true);
                     } else {
                         leagueOrder.forEach((leagueName, index) => {
                             if (allLeagueData[leagueName]) {
@@ -243,17 +216,6 @@
                     if (allLeagueData.stream) {
                         highlightMatches(allLeagueData.stream);
                     }
-
-                    if (shouldToggle) {
-                        toggleHeaderFooter();
-                    }
-
-                    // ヘッダー/フッターの表示状態を復元
-                    const headerFooterHidden = localStorage.getItem('headerFooterHidden') === 'true';
-                    const header = document.getElementById('header');
-                    const footer = document.getElementById('footer');
-                    header.style.visibility = headerFooterHidden ? 'hidden' : 'visible';
-                    footer.style.visibility = headerFooterHidden ? 'hidden' : 'visible';
                 })
                 .catch(function(error) {
                     console.error('データの取得中にエラーが発生しました:', error);
